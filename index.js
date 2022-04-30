@@ -5,12 +5,12 @@ const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const app = express();
 
+const host = "localhost";
+const port = process.env.PORT || 5000;
+
 // Middleware
 app.use(cors());
 app.use(express.json());
-
-const host = "localhost";
-const port = process.env.PORT || 5000;
 
 // Database connection string
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vt98y.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -24,6 +24,27 @@ async function run() {
   try {
     await client.connect();
     const bookCollection = client.db("bookBuddy").collection("book");
+
+    // POST book
+    app.post("/addBook", async (req, res) => {
+      const book = req.body;
+      const result = await bookCollection.insertOne(book);
+      res.send({ success: "true", message: "Added a new book successfully" });
+    });
+
+    // GET book :get all book
+    app.get("/book", async (req, res) => {
+      const query = {};
+      const cursor = bookCollection.find(query);
+      const result = await cursor.toArray();
+      const count = await bookCollection.estimatedDocumentCount();
+      res.send({ result, count });
+    });
+
+    app.get("/countBook", async (req, res) => {
+      const count = await bookCollection.estimatedDocumentCount();
+      res.send({ count });
+    });
 
     console.log("DB Connected");
   } finally {
