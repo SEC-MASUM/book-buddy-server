@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 
@@ -44,6 +44,22 @@ async function run() {
     app.get("/countBook", async (req, res) => {
       const count = await bookCollection.estimatedDocumentCount();
       res.send({ count });
+    });
+    // DELETE : delete a book by id
+    app.delete("/book/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: ObjectId(id) };
+      const book = await bookCollection.findOne(query);
+      const result = await bookCollection.deleteOne(query);
+      // res.send(result);
+      if (result.deletedCount == 1) {
+        return res.status(200).send({
+          success: "true",
+          message: `${book?.name || " "} Deleted successfully`,
+          book,
+        });
+      }
     });
 
     console.log("DB Connected");
