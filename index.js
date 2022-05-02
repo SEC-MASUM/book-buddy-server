@@ -49,6 +49,28 @@ async function run() {
       res.send(result);
     });
 
+    //UPDATE Book quantity by id
+    app.put("/book/:id", async (req, res) => {
+      const id = req.params.id;
+      const quantity = await req.body.quantity;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updateBook = { $set: { quantity: quantity } };
+      const result = await bookCollection.updateOne(
+        filter,
+        updateBook,
+        options
+      );
+      if (!result.acknowledged) {
+        return res
+          .status(500)
+          .send({ success: false, error: "Something went wrong" });
+      }
+      res
+        .status(200)
+        .send({ success: true, message: "Stock updated successfully" });
+    });
+
     app.get("/countBook", async (req, res) => {
       const count = await bookCollection.estimatedDocumentCount();
       res.send({ count });
