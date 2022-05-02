@@ -40,6 +40,14 @@ async function run() {
       const count = await bookCollection.estimatedDocumentCount();
       res.send({ result, count });
     });
+    // GET a book by id
+    app.get("/book/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: ObjectId(id) };
+      const result = await bookCollection.findOne(query);
+      res.send(result);
+    });
 
     app.get("/countBook", async (req, res) => {
       const count = await bookCollection.estimatedDocumentCount();
