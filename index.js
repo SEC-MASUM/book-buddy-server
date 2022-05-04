@@ -40,6 +40,15 @@ async function run() {
       const count = await bookCollection.estimatedDocumentCount();
       res.send({ result, count });
     });
+    // GET book :get book by limit
+    app.get("/book/:limit", async (req, res) => {
+      const limit = parseInt(req.params.limit);
+      // console.log(parseInt(limit));
+      const query = {};
+      const cursor = bookCollection.find(query).limit(limit);
+      const result = await cursor.toArray();
+      res.send({ result });
+    });
     // GET a book by id
     app.get("/book/:id", async (req, res) => {
       const id = req.params.id;
