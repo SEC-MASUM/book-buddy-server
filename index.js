@@ -41,7 +41,7 @@ async function run() {
       res.send({ result, count });
     });
     // GET book :get book by limit
-    app.get("/book/:limit", async (req, res) => {
+    app.get("/book/limit/:limit", async (req, res) => {
       const limit = parseInt(req.params.limit);
       // console.log(parseInt(limit));
       const query = {};
@@ -50,12 +50,21 @@ async function run() {
       res.send({ result });
     });
     // GET a book by id
-    app.get("/book/:id", async (req, res) => {
+    app.get("/book/id/:id", async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const query = { _id: ObjectId(id) };
       const result = await bookCollection.findOne(query);
       res.send(result);
+    });
+    // GET MyItems by user email
+    app.get("/myBook", async (req, res) => {
+      const email = req.query.email;
+      console.log(email);
+      const query = { email: email };
+      const cursor = bookCollection.find(query);
+      const result = await cursor.toArray();
+      res.send({ result });
     });
 
     //UPDATE Book quantity by id
