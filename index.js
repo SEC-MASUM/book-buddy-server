@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
@@ -11,6 +12,28 @@ const port = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  console.log("inside verifyJWT", authHeader);
+  if (!authHeader) {
+    return res
+      .status(401)
+      .send({ success: false, message: "Unauthorized access" });
+  }
+  const headerToken = authHeader.split(" ")[1];
+  jwt.verify(headerToken, process.env.SECRET_ACCESS_TOKEN, (error, decoded) => {
+    if (error) {
+      return res
+        .status(403)
+        .send({ success: false, message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    console.log("decoded", decoded);
+    next();
+  });
+  
+}
 
 // Database connection string
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.vt98y.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
@@ -24,6 +47,15 @@ async function run() {
   try {
     await client.connect();
     const bookCollection = client.db("bookBuddy").collection("book");
+
+    // AUTH
+    app.post("/getToken", async (req, res) => {
+      const user = req.body;
+      const accessToken = jwt.sign(user, process.env.SECRET_ACCESS_TOKEN, {
+        expiresIn: "1d",
+      });
+      res.send({ accessToken });
+    });
 
     // POST book
     app.post("/addBook", async (req, res) => {
@@ -58,13 +90,20 @@ async function run() {
       res.send(result);
     });
     // GET MyItems by user email
-    app.get("/myBook", async (req, res) => {
+    app.get("/myBook", verifyJWT, async (req, res) => {
+      const decodedEmail = req.decoded.email;
       const email = req.query.email;
       console.log(email);
-      const query = { email: email };
-      const cursor = bookCollection.find(query);
-      const result = await cursor.toArray();
-      res.send({ result });
+      if (email === decodedEmail) {
+        const query = { email: email };
+        const cursor = bookCollection.find(query);
+        const result = await cursor.toArray();
+        res.send({ result });
+      } else {
+        return res
+          .status(403)
+          .send({ success: false, message: "Forbidden access" });
+      }
     });
 
     //UPDATE Book quantity by id
