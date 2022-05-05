@@ -6,3 +6,4 @@
 - CORS
 - DOTENV
 - NODEMON
+- jsonwebtoken
