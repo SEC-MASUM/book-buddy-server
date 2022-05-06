@@ -19,7 +19,7 @@ function verifyJWT(req, res, next) {
   if (!authHeader) {
     return res
       .status(401)
-      .send({ success: false, message: "Unauthorized access-1" });
+      .send({ success: false, message: "Unauthorized access" });
   }
   const headerToken = authHeader.split(" ")[1];
   jwt.verify(headerToken, process.env.SECRET_ACCESS_TOKEN, (error, decoded) => {
@@ -29,7 +29,7 @@ function verifyJWT(req, res, next) {
         .send({ success: false, message: "Forbidden access" });
     }
     req.decoded = decoded;
-    console.log("decoded", decoded);
+    // console.log("decoded", decoded);
     next();
   });
   
@@ -93,7 +93,7 @@ async function run() {
     app.get("/myBook", verifyJWT, async (req, res) => {
       const decodedEmail = req.decoded.email;
       const email = req.query.email;
-      console.log(email, decodedEmail);
+      // console.log(email, decodedEmail);
       if (email === decodedEmail) {
         const query = { email: email };
         const cursor = bookCollection.find(query);
